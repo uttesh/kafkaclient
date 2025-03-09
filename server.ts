@@ -78,14 +78,16 @@ const fetchLatestMessages = async () => {
           partition,
           key: message.key?.toString(),
           value: message.value?.toString(),
-          offset: message.offset
+          offset: message.offset,
+          timestamp: message.timestamp
         });
         messages.push({
           topic,
           partition,
           key: message.key?.toString() || "N/A",
           value: message.value?.toString(),
-          offset: message.offset
+          offset: message.offset,
+          timestamp: message.timestamp
         });
         console.log("messages in consumer list....", messages);
       }
