@@ -190,9 +190,9 @@ export default function Dashboard() {
   return (
     <Container sx={{ mt: 2 }}>
       <Typography variant="h5" gutterBottom>
-        Kafka Dashboard
+        Kafka Dashboard <ThemeToggle></ThemeToggle>
       </Typography>
-      <ThemeToggle></ThemeToggle>
+
       {/* Accordion for Kafka Config */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
