@@ -29,7 +29,10 @@ import {
   AccordionDetails,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  AppBar,
+  Toolbar,
+  IconButton
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { ThemeToggle } from "./Header";
@@ -189,9 +192,16 @@ export default function Dashboard() {
 
   return (
     <Container sx={{ mt: 2 }}>
-      <Typography variant="h5" gutterBottom>
+      {/* <Typography variant="h5" gutterBottom>
         Kafka Dashboard <ThemeToggle></ThemeToggle>
-      </Typography>
+      </Typography> */}
+      <AppBar position="static" sx={{ borderRadius: 3, mx: 2, my: 1, ml: 0 }}>
+        <Toolbar>
+          <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: "bold" }}>
+            Kafka Dashboard <ThemeToggle></ThemeToggle>
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
       {/* Accordion for Kafka Config */}
       <Accordion>

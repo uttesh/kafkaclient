@@ -27,9 +27,9 @@ export const ThemeProviderWrapper = ({
   };
 
   const theme: Theme = createTheme({
-    palette: {
-      mode: darkMode ? "dark" : "light"
-    }
+    palette: { mode: darkMode ? "dark" : "light" },
+    shape: { borderRadius: 10 },
+    typography: { fontFamily: "Inter, sans-serif", fontSize: 14 }
   });
 
   return (
