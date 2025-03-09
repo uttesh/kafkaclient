@@ -23,6 +23,11 @@ let admin: Admin;
 let consumer: Consumer;
 let producer: Producer;
 let kafkaConfig = { clientId: "kafka-dashboard", brokers: ["localhost:9092"] };
+// Store message count and keys per partition
+let partitionData: Record<
+  string,
+  Record<number, { count: number; keys: Set<string> }>
+> = {};
 
 // Function to initialize Kafka with dynamic config
 const initializeKafka = async () => {
@@ -48,6 +53,66 @@ app.post("/set-kafka-config", async (req, res) => {
     res.json({ success: true, message: "Kafka configuration updated!" });
   } catch (error) {
     res.status(500).json({ error: "Error updating Kafka config" });
+  }
+});
+
+const fetchKafkaMetadata = async () => {
+  await admin.connect();
+
+  try {
+    // Fetch cluster details before disconnecting
+    const clusterInfo = await admin.describeCluster();
+    const brokers = clusterInfo.brokers.map((b) => b.host);
+    const consumerGroups = (await admin.listGroups()).groups.map(
+      (g) => g.groupId
+    );
+
+    const allTopics = await fetchAllTopics();
+    const topics = allTopics.filter(
+      (topic) =>
+        !topic.startsWith("__") &&
+        !topic.startsWith("_") &&
+        topic != "transaction"
+    );
+    const topicMetadata = await admin.fetchTopicMetadata({ topics });
+    const topicsWithPartitions = topicMetadata.topics.map((topic) => ({
+      name: topic.name,
+      partitions: topic.partitions.map((partition) => {
+        const partitionInfo = partitionData[topic.name]?.[
+          partition.partitionId
+        ] || { count: 0, keys: new Set() };
+
+        return {
+          partition: partition.partitionId,
+          messageCount: partitionInfo.count,
+          keys: Array.from(partitionInfo.keys) // Convert Set to Array
+        };
+      })
+    }));
+    console.log(
+      "topicsWithPartitions ::: ",
+      JSON.stringify(topicsWithPartitions)
+    );
+    return { topics: topicsWithPartitions, brokers, consumerGroups };
+  } catch (error) {
+    console.error("Error fetching Kafka metadata:", error);
+    return { topics: [], brokers: [], consumerGroups: [] };
+  } finally {
+    await admin.disconnect(); // Now disconnect at the end
+  }
+};
+
+// Fetch Kafka metadata every 10 seconds
+setInterval(fetchKafkaMetadata, 5000);
+
+// API to Fetch Kafka Metadata
+app.get("/kafka-metadata", async (req, res) => {
+  try {
+    const metadata = await fetchKafkaMetadata();
+    res.json(metadata);
+  } catch (error) {
+    console.error("Error fetching Kafka metadata:", error);
+    res.status(500).json({ error: "Failed to fetch Kafka metadata" });
   }
 });
 
@@ -97,6 +162,17 @@ const fetchLatestMessages = async () => {
         const msgKey = message.key?.toString() || "N/A";
         const offset = message.offset;
         const timestamp = new Date(Number(message.timestamp)).toLocaleString();
+
+        if (!partitionData[topic]) {
+          partitionData[topic] = {};
+        }
+        if (!partitionData[topic][partition]) {
+          partitionData[topic][partition] = { count: 0, keys: new Set() };
+        }
+
+        partitionData[topic][partition].count += 1;
+        // partitionData[topic][partition].keys.add(msgKey); // uncomment when needed
+
         console.log("📥 RECEIVED MESSAGE:", {
           topic,
           partition,
@@ -176,4 +252,5 @@ app.get("/topics", async (req, res) => {
 app.listen(5000, async () => {
   await initializeKafka();
   console.log("Server running on port 5000");
+  await fetchKafkaMetadata(); // Fetch immediately on startup
 });

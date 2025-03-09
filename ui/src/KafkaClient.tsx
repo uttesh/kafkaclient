@@ -23,8 +23,15 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemText
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 interface KafkaMessage {
   topic: string;
@@ -38,6 +45,21 @@ interface KafkaMessage {
 interface KafkaConfig {
   clientId: string;
   brokers: string;
+}
+
+interface KafkaPartitionInfo {
+  partition: number;
+  messageCount: number;
+  keys: string[];
+}
+
+interface KafkaMetadata {
+  topics: {
+    name: string;
+    partitions: KafkaPartitionInfo[];
+  }[];
+  consumerGroups: string[];
+  brokers: string[];
 }
 
 export default function Dashboard() {
@@ -55,9 +77,21 @@ export default function Dashboard() {
     brokers: ""
   });
 
-  // Fetch Kafka topics
+  const [kafkaMetadata, setKafkaMetadata] = useState<KafkaMetadata>({
+    topics: [],
+    consumerGroups: [],
+    brokers: []
+  });
+
   useEffect(() => {
     fetchKafkaConfig();
+    fetchKafkaMetadata();
+    const interval = setInterval(fetchKafkaMetadata, 5000); // Auto-refresh
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch Kafka topics
+  useEffect(() => {
     const fetchMessages = async () => {
       try {
         const response = await fetch("http://localhost:5000/messages");
@@ -109,6 +143,17 @@ export default function Dashboard() {
     }
   };
 
+  // Fetch Kafka Metadata
+  const fetchKafkaMetadata = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/kafka-metadata");
+      const data = await response.json();
+      setKafkaMetadata(data);
+    } catch (error) {
+      console.error("Error fetching Kafka metadata:", error);
+    }
+  };
+
   // Save Kafka config
   const saveKafkaConfig = async () => {
     try {
@@ -147,10 +192,12 @@ export default function Dashboard() {
         Kafka Dashboard
       </Typography>
 
-      {/* Kafka Configuration Form */}
-      <Card sx={{ mb: 2 }}>
-        <CardContent>
+      {/* Accordion for Kafka Config */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h6">Kafka Server Configuration</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
           <Stack spacing={2}>
             <TextField
               label="Client ID"
@@ -161,7 +208,7 @@ export default function Dashboard() {
               fullWidth
             />
             <TextField
-              label="Brokers (comma-separated) i.e localhost:9092 , localhost:9095"
+              label="Brokers (comma-separated)"
               value={kafkaConfig.brokers}
               onChange={(e) =>
                 setKafkaConfig({ ...kafkaConfig, brokers: e.target.value })
@@ -176,8 +223,111 @@ export default function Dashboard() {
               Save Kafka Config
             </Button>
           </Stack>
-        </CardContent>
-      </Card>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* Accordion for Kafka Metadata */}
+      <Accordion defaultExpanded sx={{ mt: 2 }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="h6">Kafka Metadata</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Stack direction="row" spacing={3}>
+            {/* Brokers Section - List View */}
+            <Card sx={{ minWidth: 250, flex: 1 }}>
+              <CardContent>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Brokers
+                </Typography>
+                <List dense>
+                  {kafkaMetadata.brokers && kafkaMetadata.brokers.length > 0 ? (
+                    kafkaMetadata.brokers.map((broker, index) => (
+                      <ListItem key={index}>
+                        <ListItemText primary={broker} />
+                      </ListItem>
+                    ))
+                  ) : (
+                    <Typography variant="body2">
+                      No brokers available
+                    </Typography>
+                  )}
+                </List>
+              </CardContent>
+            </Card>
+
+            {/* Consumer Groups Section - List View */}
+            <Card sx={{ minWidth: 250, flex: 1 }}>
+              <CardContent>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Consumer Groups
+                </Typography>
+
+                <List dense>
+                  {kafkaMetadata.consumerGroups &&
+                  kafkaMetadata.consumerGroups.length > 0 ? (
+                    kafkaMetadata.consumerGroups.map((group, index) => (
+                      <ListItem key={index}>
+                        <ListItemText primary={group} />
+                      </ListItem>
+                    ))
+                  ) : (
+                    <Typography variant="body2">No consumer groups</Typography>
+                  )}
+                </List>
+              </CardContent>
+            </Card>
+
+            {/* Topics & Partitions Table */}
+            {/* Topics & Partitions Table */}
+            <Card sx={{ flex: 3 }}>
+              <CardContent>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Topics & Partitions
+                </Typography>
+                <TableContainer component={Paper} sx={{ mt: 1 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Topic</TableCell>
+                        <TableCell>Partition</TableCell>
+                        <TableCell>Message Count</TableCell>
+                        <TableCell>Keys</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {kafkaMetadata.topics &&
+                      kafkaMetadata.topics.length > 0 ? (
+                        kafkaMetadata.topics.map(
+                          (topic) =>
+                            topic.partitions &&
+                            topic.partitions.map((partition) => (
+                              <TableRow
+                                key={`${topic.name}-${partition.partition}`}
+                              >
+                                <TableCell>{topic.name}</TableCell>
+                                <TableCell>{partition.partition}</TableCell>
+                                <TableCell>{partition.messageCount}</TableCell>
+                                <TableCell>
+                                  {partition.keys.join(", ") || "No keys"}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                        )
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} align="center">
+                            No topics available
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Stack>
+        </AccordionDetails>
+      </Accordion>
 
       {/* Replace Grid with Box and Stack */}
       <Box display="flex" gap={2}>
