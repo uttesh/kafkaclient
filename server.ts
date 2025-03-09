@@ -1,5 +1,5 @@
 import express from "express";
-import { Kafka } from "kafkajs";
+import { Kafka, Admin, Consumer, Producer } from "kafkajs";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
@@ -18,14 +18,38 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const kafka = new Kafka({
-  clientId: "kafka-dashboard",
-  brokers: ["localhost:9092"] // Change as per your setup
+let kafka: Kafka;
+let admin: Admin;
+let consumer: Consumer;
+let producer: Producer;
+let kafkaConfig = { clientId: "kafka-dashboard", brokers: ["localhost:9092"] };
+
+// Function to initialize Kafka with dynamic config
+const initializeKafka = async () => {
+  if (admin) await admin.disconnect(); // Disconnect existing admin
+  kafka = new Kafka(kafkaConfig);
+  producer = kafka.producer();
+  consumer = kafka.consumer({ groupId: "kafka-dashboard-group" });
+  admin = kafka.admin();
+  await admin.connect();
+};
+
+// API to get Kafka config
+app.get("/kafka-config", (req, res) => {
+  res.json(kafkaConfig);
 });
 
-const admin = kafka.admin(); // Create an admin client
-const producer = kafka.producer();
-const consumer = kafka.consumer({ groupId: "kafka-dashboard-group" });
+// API to set Kafka config and restart Kafka
+app.post("/set-kafka-config", async (req, res) => {
+  try {
+    const { clientId, brokers } = req.body;
+    kafkaConfig = { clientId, brokers: brokers.split(",") };
+    await initializeKafka();
+    res.json({ success: true, message: "Kafka configuration updated!" });
+  } catch (error) {
+    res.status(500).json({ error: "Error updating Kafka config" });
+  }
+});
 
 // Store messages in memory (or use a database for persistence)
 let messages: any[] = [];
@@ -148,4 +172,8 @@ app.get("/topics", async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("Kafka Server running on port 5000"));
+// Start server
+app.listen(5000, async () => {
+  await initializeKafka();
+  console.log("Server running on port 5000");
+});

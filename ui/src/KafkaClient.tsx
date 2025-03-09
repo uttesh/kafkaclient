@@ -35,6 +35,11 @@ interface KafkaMessage {
   timestamp: string;
 }
 
+interface KafkaConfig {
+  clientId: string;
+  brokers: string;
+}
+
 export default function Dashboard() {
   const [messages, setMessages] = useState<KafkaMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,9 +50,14 @@ export default function Dashboard() {
     null
   );
   const [topics, setTopics] = useState<string[]>([]); // Store Kafka topics
+  const [kafkaConfig, setKafkaConfig] = useState<KafkaConfig>({
+    clientId: "",
+    brokers: ""
+  });
 
   // Fetch Kafka topics
   useEffect(() => {
+    fetchKafkaConfig();
     const fetchMessages = async () => {
       try {
         const response = await fetch("http://localhost:5000/messages");
@@ -88,6 +98,30 @@ export default function Dashboard() {
     fetchTopics();
   }, []);
 
+  // Fetch current Kafka config from the server
+  const fetchKafkaConfig = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/kafka-config");
+      const data = await response.json();
+      setKafkaConfig(data);
+    } catch (error) {
+      console.error("Error fetching Kafka config:", error);
+    }
+  };
+
+  // Save Kafka config
+  const saveKafkaConfig = async () => {
+    try {
+      await fetch("http://localhost:5000/set-kafka-config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(kafkaConfig)
+      });
+      fetchKafkaConfig(); // Reload after saving
+    } catch (error) {
+      console.error("Error saving Kafka config:", error);
+    }
+  };
   // Publish message to Kafka
   const sendMessage = async () => {
     if (!message.trim() || !topic.trim()) return;
@@ -112,6 +146,38 @@ export default function Dashboard() {
       <Typography variant="h5" gutterBottom>
         Kafka Dashboard
       </Typography>
+
+      {/* Kafka Configuration Form */}
+      <Card sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="h6">Kafka Server Configuration</Typography>
+          <Stack spacing={2}>
+            <TextField
+              label="Client ID"
+              value={kafkaConfig.clientId}
+              onChange={(e) =>
+                setKafkaConfig({ ...kafkaConfig, clientId: e.target.value })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Brokers (comma-separated) i.e localhost:9092 , localhost:9095"
+              value={kafkaConfig.brokers}
+              onChange={(e) =>
+                setKafkaConfig({ ...kafkaConfig, brokers: e.target.value })
+              }
+              fullWidth
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={saveKafkaConfig}
+            >
+              Save Kafka Config
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {/* Replace Grid with Box and Stack */}
       <Box display="flex" gap={2}>
