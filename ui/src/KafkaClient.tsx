@@ -2,11 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Container,
   Typography,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -14,14 +9,21 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  Button,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  TablePagination,
+  TextField,
+  Card,
+  CardContent,
+  Box,
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 
 interface KafkaMessage {
@@ -106,123 +108,93 @@ export default function Dashboard() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Typography variant="h4" align="center" gutterBottom>
+    <Container sx={{ mt: 2 }}>
+      <Typography variant="h5" gutterBottom>
         Kafka Dashboard
       </Typography>
 
-      {/* Publish Message Card */}
-      <Card sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Publish Message
-          </Typography>
+      {/* Replace Grid with Box and Stack */}
+      <Box display="flex" gap={2}>
+        {/* Publish Message Form */}
+        <Card sx={{ flex: 1, height: "500px" }}>
+          <CardContent>
+            <Typography variant="h6">Publish Message</Typography>
+            <Stack spacing={2}>
+              {/* Topic Dropdown */}
+              <FormControl fullWidth>
+                <InputLabel>Topic</InputLabel>
+                <Select
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                >
+                  {topics.map((topic) => (
+                    <MenuItem key={topic} value={topic}>
+                      {topic}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Select Topic</InputLabel>
-            <Select
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              disabled={topics.length === 0}
-            >
-              {topics.map((t) => (
-                <MenuItem key={t} value={t}>
-                  {t}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              {/* Message Text Field */}
+              <TextField
+                label="Message"
+                fullWidth
+                multiline
+                rows={4}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
 
-          <TextField
-            label="Enter message..."
-            variant="outlined"
-            fullWidth
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={sendMessage}
-            fullWidth
-          >
-            Send
-          </Button>
-        </CardContent>
-      </Card>
+              {/* Send Button */}
+              <Button variant="contained" color="primary" onClick={sendMessage}>
+                Send
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
 
-      {/* Kafka Messages Table */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Received Messages
-          </Typography>
-
-          {loading ? (
-            <CircularProgress sx={{ display: "block", mx: "auto", my: 3 }} />
-          ) : (
-            <TableContainer component={Paper}>
-              <Table>
+        {/* Messages List */}
+        <Card sx={{ flex: 2, height: "500px", overflow: "hidden" }}>
+          <CardContent>
+            <Typography variant="h6">Messages</Typography>
+            {/* Message Table */}
+            <TableContainer component={Paper} sx={{ maxHeight: 350 }}>
+              <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell>
-                      <strong>Topic</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Key</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Value</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Partition</strong>
-                    </TableCell>
-                    <TableCell>
-                      <strong>Offset</strong>
-                    </TableCell>
+                    <TableCell>Topic</TableCell>
+                    <TableCell>Partition</TableCell>
+                    <TableCell>Offset</TableCell>
+                    <TableCell>Message</TableCell>
+                    <TableCell>Timestamp</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {messages.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} align="center">
-                        No messages received
+                  {messages.map((msg, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{msg.topic}</TableCell>
+                      <TableCell>{msg.partition}</TableCell>
+                      <TableCell>{msg.offset}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="small"
+                          onClick={() => handleOpenDialog(msg)}
+                        >
+                          View
+                        </Button>
                       </TableCell>
+                      <TableCell>{msg.timestamp}</TableCell>
                     </TableRow>
-                  ) : (
-                    messages.map((msg, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{msg.topic}</TableCell>
-                        <TableCell>{msg.key || "N/A"}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => handleOpenDialog(msg)}
-                          >
-                            View Message
-                          </Button>
-                        </TableCell>
-                        <TableCell>{msg.partition}</TableCell>
-                        <TableCell>{msg.offset}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </Box>
 
-      {/* Message Pop-Up Dialog */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
+      {/* Pop-out Message Dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
         <DialogTitle>Message Details</DialogTitle>
         <DialogContent>
           {selectedMessage && (
@@ -240,18 +212,13 @@ export default function Dashboard() {
                 <strong>Key:</strong> {selectedMessage.key}
               </p>
               <p>
-                <strong>Timestamp:</strong> {selectedMessage.timestamp}
-              </p>
-              <p>
                 <strong>Message:</strong> {selectedMessage.value}
               </p>
             </div>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)} color="primary">
-            Close
-          </Button>
+          <Button onClick={() => setOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Container>
