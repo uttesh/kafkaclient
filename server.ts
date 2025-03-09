@@ -49,7 +49,13 @@ const fetchLatestMessages = async () => {
     }
     if (onlyOnce) {
       console.log("its should call only once");
-      const topics = await fetchAllTopics();
+      const allTopics = await fetchAllTopics();
+      const topics = allTopics.filter(
+        (topic) =>
+          !topic.startsWith("__") &&
+          !topic.startsWith("_") &&
+          topic != "transaction"
+      );
       await consumer.connect();
       for (const topic of topics) {
         await consumer.subscribe({ topic, fromBeginning: true });
