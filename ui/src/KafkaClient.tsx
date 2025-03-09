@@ -32,6 +32,7 @@ import {
   ListItemText
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ThemeToggle } from "./Header";
 
 interface KafkaMessage {
   topic: string;
@@ -191,7 +192,7 @@ export default function Dashboard() {
       <Typography variant="h5" gutterBottom>
         Kafka Dashboard
       </Typography>
-
+      <ThemeToggle></ThemeToggle>
       {/* Accordion for Kafka Config */}
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
