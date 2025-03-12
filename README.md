@@ -1,9 +1,11 @@
 # Kafka Dashboard
 
 ## Overview
+
 The **Kafka Dashboard** is a **React + TypeScript + Material UI** web application that allows users to **publish, consume, and monitor** Kafka messages. It provides real-time insights into Kafka topics, partitions, consumer groups, and metadata in a visually appealing and interactive UI.
 
 ## Features
+
 ✅ **Publish & Consume Kafka Messages**  
 ✅ **Monitor Kafka Topics, Partitions, Offsets, and Keys**  
 ✅ **View Consumer Groups & Broker Details**  
@@ -11,36 +13,42 @@ The **Kafka Dashboard** is a **React + TypeScript + Material UI** web applicatio
 ✅ **Pagination & Column Filtering**  
 ✅ **Configurable Kafka Server Settings**  
 ✅ **Live Kafka Metadata Updates**  
-✅ **Modern UI with Curved Corners & Responsive Design**  
+✅ **Modern UI with Curved Corners & Responsive Design**
 
 ---
 
 ## 🚀 Getting Started
 
 ### **1. Prerequisites**
+
 Ensure you have the following installed:
+
 - **Node.js** (v18+ recommended)
 - **Docker** (for running Kafka)
 - **KafkaJS** (Node.js client for Kafka)
 
 ### **2. Clone the Repository**
+
 ```sh
 git clone https://github.com/your-repo/kafka-dashboard.git
 cd kafka-dashboard
 ```
 
 ### **3. Start Kafka (No Zookeeper)**
+
 Run Kafka & Schema Registry using Docker Compose:
+
 ```sh
 docker-compose up -d
 ```
 
 #### **📝 `docker-compose.yml` (No Zookeeper)**
+
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   kafka:
-    image: 'bitnami/kafka:latest'
+    image: "bitnami/kafka:latest"
     ports:
       - "9092:9092"
     environment:
@@ -57,6 +65,7 @@ services:
 ## 🔧 Setup & Installation
 
 ### **4. Install Dependencies**
+
 ```sh
 # Install frontend dependencies
 cd client
@@ -68,17 +77,19 @@ npm install
 ```
 
 ### **5. Configure Kafka Server in UI**
+
 Once the app is running, configure the Kafka **bootstrap servers, topics, and groups** directly from the UI settings panel.
 
 ### **6. Start the Server**
+
 ```sh
-cd server
-npm run dev
+> npx ts-node server.ts
 ```
 
 ### **7. Start the Frontend**
+
 ```sh
-cd client
+cd ui
 npm run dev
 ```
 
@@ -87,6 +98,7 @@ The application will be available at **`http://localhost:3000`**
 ---
 
 ## 📌 Project Structure
+
 ```
 kafka-dashboard/
 │── client/                 # React Frontend (TypeScript + MUI)
@@ -114,13 +126,16 @@ kafka-dashboard/
 ---
 
 ## 🌟 UI Preview
+
 ### **Dashboard**
+
 - **Modern MUI-based UI with curved corners**
 - **Topic & Consumer Group Monitoring**
 - **Dark Mode Toggle**
 - **Live Kafka Messages in Table with Pagination**
 
 ### **Kafka Configuration Panel**
+
 - **Update Kafka Broker Configurations in UI**
 - **View Consumer Groups, Partitions, and Metadata**
 
@@ -129,9 +144,11 @@ kafka-dashboard/
 ## 🎯 API Endpoints
 
 ### **Producer API (Publish Message)**
+
 ```http
 POST /api/kafka/publish
 ```
+
 ```json
 {
   "topic": "my-topic",
@@ -141,20 +158,25 @@ POST /api/kafka/publish
 ```
 
 ### **Consumer API (Fetch Messages)**
+
 ```http
 GET /api/kafka/messages
 ```
+
 Returns messages along with **offset, partition, and key** details.
 
 ### **Kafka Metadata API**
+
 ```http
 GET /api/kafka/metadata
 ```
+
 Returns **brokers, topics, partitions, consumer groups**.
 
 ---
 
 ## 🛠️ Built With
+
 - **React + TypeScript** - Frontend
 - **Material UI (MUI)** - Styling & Components
 - **KafkaJS** - Kafka Client for Node.js
@@ -164,6 +186,7 @@ Returns **brokers, topics, partitions, consumer groups**.
 ---
 
 ## 📌 Future Enhancements
+
 - 📊 **Real-time WebSocket Updates** for Messages
 - 📉 **Kafka Metrics & Charts** for Visualization
 - 🔄 **Custom Kafka Retention Policies & Alerts**
@@ -171,6 +194,7 @@ Returns **brokers, topics, partitions, consumer groups**.
 ---
 
 ## 🤝 Contributing
+
 1. Fork the repo
 2. Create a feature branch (`git checkout -b feature-name`)
 3. Commit your changes (`git commit -m 'Added new feature'`)
@@ -180,12 +204,13 @@ Returns **brokers, topics, partitions, consumer groups**.
 ---
 
 ## 📜 License
+
 This project is licensed under the **MIT License**.
 
 ---
 
 ## 📞 Support
+
 For any issues or feature requests, create an **[Issue](https://github.com/your-repo/kafka-dashboard/issues)** or reach out via email.
 
 🚀 **Happy Coding with Kafka!** 🎉
-
