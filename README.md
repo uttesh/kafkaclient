@@ -83,13 +83,13 @@ Once the app is running, configure the Kafka **bootstrap servers, topics, and gr
 ### **6. Start the Server**
 
 ```sh
-> npx ts-node server.ts
+npx ts-node server.ts
 ```
 
 ### **7. Start the Frontend**
 
 ```sh
-cd ui
+cd client
 npm run dev
 ```
 
@@ -138,6 +138,11 @@ kafka-dashboard/
 
 - **Update Kafka Broker Configurations in UI**
 - **View Consumer Groups, Partitions, and Metadata**
+
+### **📸 Application Screenshot**
+
+![Kafka Dashboard Screenshot](./ui/kafka-dashboard.png)
+![Kafka Message Detaila Screenshot](./ui/message_details.png)
 
 ---
 
@@ -211,6 +216,6 @@ This project is licensed under the **MIT License**.
 
 ## 📞 Support
 
-For any issues or feature requests, create an **[Issue](https://github.com/your-repo/kafka-dashboard/issues)** or reach out via email.
+For any issues or feature requests, create an **[Issue](https://github.com/uttesh/kafka-dashboard/issues)** or reach out via email.
 
 🚀 **Happy Coding with Kafka!** 🎉
