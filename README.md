@@ -30,8 +30,8 @@ Ensure you have the following installed:
 ### **2. Clone the Repository**
 
 ```sh
-git clone https://github.com/your-repo/kafka-dashboard.git
-cd kafka-dashboard
+git clone https://github.com/uttesh/kafkaclient.git
+cd kafkaclient
 ```
 
 ### **3. Start Kafka (No Zookeeper)**
@@ -216,6 +216,6 @@ This project is licensed under the **MIT License**.
 
 ## 📞 Support
 
-For any issues or feature requests, create an **[Issue](https://github.com/uttesh/kafka-dashboard/issues)** or reach out via email.
+For any issues or feature requests, create an **[Issue](https://github.com/uttesh/kafkaclient/issues)** or reach out via email.
 
 🚀 **Happy Coding with Kafka!** 🎉
